@@ -1,0 +1,18 @@
+.button {
+  width: 100vw;
+  background-color: #20b2aa;
+  color: aliceblue;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  background-size: 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+  right: 20px;
+  transition: box-shadow 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.button:hover {
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 2);
+}
