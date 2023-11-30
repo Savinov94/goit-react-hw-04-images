@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import css from './App.module.css';
 import Searchbar from './Searchbar/Searchbar';
 import Button from './Button/Button';
@@ -7,90 +7,79 @@ import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
 import { getPicturesSearch } from '../api/pictures';
 
-class App extends Component {
-  state = {
-    isLoading: false,
-    error: '',
-    pictures: [],
-    query: '',
-    showModal: false,
-    selectedImage: null,
-    isShowPictures: false,
-  };
+const App = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [pictures, setPictures] = useState([]);
+  const [query, setQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isShowPictures, setIsShowPictures] = useState(false);
+  const [page, setPage] = useState(1);
+  const [prevPictures] = useState([]);
 
-  componentDidUpdate(_, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
-    ) {
-      this.handlePictures();
+  useEffect(() => {
+    const handlePictures = async () => {
+      try {
+        setIsLoading(true);
+        const { hits, totalHits } = await getPicturesSearch(query, page);
+        setPictures(prevPictures => [...prevPictures, ...hits]);
+        setError('');
+        setIsShowPictures(totalHits > prevPictures.length);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (query !== '' || page !== 1) {
+      handlePictures();
     }
-  }
+  }, [query, page, prevPictures.length]);
 
-  handleClick = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const handleClick = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  handleImageClick = selectedImage => {
-    this.setState({ selectedImage, showModal: true });
+  const handleImageClick = selectedImage => {
+    setSelectedImage(selectedImage);
+    setShowModal(true);
   };
 
-  toggleModal = () => {
-    this.setState(prevState => ({
-      showModal: !prevState.showModal,
-    }));
+  const toggleModal = () => {
+    setShowModal(prevShowModal => !prevShowModal);
   };
 
-  handlePictures = async () => {
-    try {
-      this.setState({ isLoading: true });
-      const { hits, totalHits } = await getPicturesSearch(
-        this.state.query,
-        this.state.page
-      );
-      this.setState(prevState => ({
-        pictures: [...prevState.pictures, ...hits],
-        error: '',
-        isShowPictures: totalHits > prevState.pictures.length,
-      }));
-    } catch (error) {
-      this.setState({ error: error.message });
-    } finally {
-      this.setState({ isLoading: false });
-    }
+  const handleSubmit = ({ query }) => {
+    setQuery(query);
+    setPictures([]);
+    setPage(1);
+    setIsShowPictures(true);
   };
 
-  handleSubmit = ({ query }) => {
-    this.setState({ query, pictures: [], page: 1, isShowPictures: true });
-  };
+  return (
+    <div className={css.App}>
+      <Searchbar submit={handleSubmit} />
 
-  render() {
-    const { error, pictures, isShowPictures, showModal, selectedImage } =
-      this.state;
+      {pictures && pictures.length > 0 && (
+        <ImageGallery
+          pictures={pictures}
+          onLoadMore={handleClick}
+          onImageClick={handleImageClick}
+        />
+      )}
+      {error && <h1>{error}</h1>}
+      <Loader isLoading={isLoading} />
+      {!isLoading && isShowPictures && (
+        <Button onClick={handleClick} isVisible={isShowPictures} />
+      )}
 
-    return (
-      <div className={css.App}>
-        <Searchbar submit={this.handleSubmit} />
-
-        {pictures && pictures.length > 0 && (
-          <ImageGallery
-            pictures={pictures}
-            onLoadMore={this.handleClick}
-            onImageClick={this.handleImageClick}
-          />
-        )}
-        {error && <h1>{error}</h1>}
-        <Loader isLoading={this.state.isLoading} />
-        {!this.state.isLoading && isShowPictures && (
-          <Button onClick={this.handleClick} isVisible={isShowPictures} />
-        )}
-
-        {showModal && (
-          <Modal selectedImage={selectedImage} onClose={this.toggleModal} />
-        )}
-      </div>
-    );
-  }
-}
+      {showModal && (
+        <Modal selectedImage={selectedImage} onClose={toggleModal} />
+      )}
+    </div>
+  );
+};
 
 export default App;
