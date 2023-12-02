@@ -16,39 +16,38 @@ const App = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isShowPictures, setIsShowPictures] = useState(false);
   const [page, setPage] = useState(1);
-  const [prevPictures] = useState([]);
 
   useEffect(() => {
-    const handlePictures = async () => {
-      try {
-        setIsLoading(true);
-        const { hits, totalHits } = await getPicturesSearch(query, page);
-        setPictures(prevPictures => [...prevPictures, ...hits]);
-        setError('');
-        setIsShowPictures(totalHits > prevPictures.length);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (query !== '' || page !== 1) {
-      handlePictures();
+  const handlePictures = async () => {
+    try {
+      setIsLoading(true);
+      const { hits, totalHits } = await getPicturesSearch(query, page);
+      setPictures((prevPictures) => [...prevPictures, ...hits]);
+      setError('');
+      setIsShowPictures(totalHits > pictures.length);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
     }
-  }, [query, page, prevPictures.length]);
-
-  const handleClick = () => {
-    setPage(prevPage => prevPage + 1);
   };
 
-  const handleImageClick = selectedImage => {
+  if (query !== '' || page !== 1) {
+    handlePictures();
+  }
+}, [query, page]);
+
+  const handleClick = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
+
+  const handleImageClick = (selectedImage) => {
     setSelectedImage(selectedImage);
     setShowModal(true);
   };
 
   const toggleModal = () => {
-    setShowModal(prevShowModal => !prevShowModal);
+    setShowModal((prevShowModal) => !prevShowModal);
   };
 
   const handleSubmit = ({ query }) => {
