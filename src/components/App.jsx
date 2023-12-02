@@ -17,6 +17,7 @@ const App = () => {
   const [isShowPictures, setIsShowPictures] = useState(false);
   const [page, setPage] = useState(1);
 
+  
   useEffect(() => {
   const handlePictures = async () => {
     try {
